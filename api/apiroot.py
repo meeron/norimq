@@ -1,6 +1,7 @@
 """Queues api module"""
 
 import cherrypy
+from core import storage
 
 class Api:
     """Api root class"""
@@ -17,12 +18,13 @@ class Api:
 
 
 @cherrypy.expose
+@cherrypy.tools.json_out()
 class Queues:
     """Queues class"""
-
+ 
     def GET(self, name=None):
         if name:
-            return "Queue {}".format(name)
+            return storage.Queues.getinfo(name)
 
         return "Queues list"
 
