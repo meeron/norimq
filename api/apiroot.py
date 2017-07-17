@@ -24,12 +24,17 @@ class Queues:
  
     def GET(self, name=None):
         if name:
-            return storage.Queues.getinfo(name)
+            queue = storage.Queues.getinfo(name)
+            if queue:
+                return storage.Queues.getinfo(name)
+
+            cherrypy.response.status = 404
+            return {}
 
         return "Queues list"
 
     def PUT(self, name):
-        cherrypy.response.headers["Status"] = "201"
+        cherrypy.response.status = 201
         return "PUT OK"
 
     def DELETE(self, name):

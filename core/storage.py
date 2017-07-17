@@ -2,6 +2,8 @@
 
 import time
 import norimdb
+from core import config
+
 
 class Queues:
     """Quesues storage class"""
@@ -10,10 +12,10 @@ class Queues:
     def getinfo(name):
         """Gets the info about queue"""
 
-        return {
-            '_id': norimdb.DocId().to_str(),
-            'name': name,
-            'created_at': int(time.time()),
-            'messages_count': 0,
-            'size': 0
-        }
+        with norimdb.NorimDb(config.Storage.db_path()) as db:
+            collection = db.get_collection("queues")
+            result = collection.find({'name': name})
+            if len(result) == 0:
+                return None
+
+            return result[0]
