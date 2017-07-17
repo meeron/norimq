@@ -3,6 +3,14 @@
 import cherrypy
 from core import storage
 
+
+def bad_request(message):
+    cherrypy.response.status = 400
+    return {
+        'message': message
+    }
+
+
 class Api:
     """Api root class"""
 
@@ -33,9 +41,16 @@ class Queues:
 
         return "Queues list"
 
+    @cherrypy.tools.json_in()
     def PUT(self, name):
+        data = cherrypy.request.json
+        if 'application' not in data:
+            return bad_request("'application' property is required.")
+        if 'body' not in data:
+            return bad_request("'body' is required.")
+
         cherrypy.response.status = 201
-        return "PUT OK"
+        return storage.Queues.addmsg(name, data['application'], data['body'])
 
     def DELETE(self, name):
         return "DEL OK"
