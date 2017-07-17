@@ -3,10 +3,13 @@
 import cherrypy
 from web import Home
 from api import Api
+from core import config
 
 print(__file__)
 
 if __name__ == '__main__':
+    config.init()
+
     home = Home()
     api = Api()
 

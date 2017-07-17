@@ -1,0 +1,5 @@
+{
+  "storage": {
+    "dbPath": "/var/norimq/db"
+  }
+}
