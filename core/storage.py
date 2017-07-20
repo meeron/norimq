@@ -84,3 +84,18 @@ class Queues:
                 del queue['_id']
 
             return queues
+
+    @staticmethod
+    def delete(queue_name):
+        """Delete queue by id"""
+
+        with open_db() as db:
+            queues_coll = db.get_collection("queues")
+            result = queues_coll.find({'name': queue_name})
+            if len(result) == 0:
+                return False
+            count = queues_coll.remove(norimdb.DocId(result[0]['_id']))
+            if count == 0:
+                raise Exception('queue was not removed.')
+            db.remove_collection("q_{}".format(queue_name))
+            return True

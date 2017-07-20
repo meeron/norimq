@@ -53,4 +53,8 @@ class Queues:
         return storage.Queues.addmsg(name, data['application'], data['body'])
 
     def DELETE(self, name):
-        return "DEL OK"
+        status = 404
+        if storage.Queues.delete(name):
+            status = 200
+        cherrypy.response.status = status
+        return {}
