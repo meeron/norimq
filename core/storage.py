@@ -23,7 +23,8 @@ class Queues:
             if len(result) == 0:
                 return None
 
-            result[0]['_id'] = str(norimdb.DocId(result[0]['_id']))
+            result[0]['id'] = str(norimdb.DocId(result[0]['_id']))
+            del result[0]['_id']
             return result[0]
 
     @staticmethod
@@ -32,7 +33,7 @@ class Queues:
 
         with open_db() as db:
             queue_messages = db.get_collection("q_{}".format(queue_name))
-            queues = db.get_collection("queues".format(queue_name))
+            queues = db.get_collection("queues")
 
             queue = {
                 'name': queue_name,
@@ -69,3 +70,17 @@ class Queues:
                 'id': str(msg_entry['_id']),
                 'created_at': msg_entry['created_at']
             }
+
+    @staticmethod
+    def getqueues():
+        """Gets queues list"""
+
+        with open_db() as db:
+            queues_coll = db.get_collection("queues")
+            queues = queues_coll.find({})
+
+            for queue in queues:
+                queue['id'] = str(norimdb.DocId(queue['_id']))
+                del queue['_id']
+
+            return queues

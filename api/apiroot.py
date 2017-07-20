@@ -39,7 +39,7 @@ class Queues:
             cherrypy.response.status = 404
             return {}
 
-        return "Queues list"
+        return storage.Queues.getqueues()
 
     @cherrypy.tools.json_in()
     def PUT(self, name):
