@@ -14,7 +14,7 @@ class Queues:
     """Quesues storage class"""
 
     @staticmethod
-    def getinfo(name):
+    def get(name):
         """Gets the info about queue"""
 
         with open_db() as db:
@@ -72,7 +72,7 @@ class Queues:
             }
 
     @staticmethod
-    def getqueues():
+    def getall():
         """Gets queues list"""
 
         with open_db() as db:

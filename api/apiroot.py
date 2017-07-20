@@ -32,14 +32,14 @@ class Queues:
  
     def GET(self, name=None):
         if name:
-            queue = storage.Queues.getinfo(name)
+            queue = storage.Queues.get(name)
             if queue:
-                return storage.Queues.getinfo(name)
+                return storage.Queues.get(name)
 
             cherrypy.response.status = 404
             return {}
 
-        return storage.Queues.getqueues()
+        return storage.Queues.getall()
 
     @cherrypy.tools.json_in()
     def PUT(self, name):
