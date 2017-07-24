@@ -3,12 +3,13 @@
 import cherrypy
 from web import Home
 from api import Api
-from core import config
+from core import config, tools
 
 print(__file__)
 
 if __name__ == '__main__':
     config.init()
+    cherrypy.config['tools.json_out.handler'] = tools.json_handler
 
     home = Home()
     api = Api()

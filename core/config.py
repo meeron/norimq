@@ -11,6 +11,7 @@ current = None
 def init():
     global current
 
+    # get environment
     env = os.environ.get('NORIMQ.ENV', 'dev')
     env_config_path = "app-config.{}.json".format(env)
 

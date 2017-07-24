@@ -1,6 +1,6 @@
 """Storage module"""
 
-import time
+from datetime import  datetime
 import norimdb
 import pybinn
 from core import config
@@ -37,8 +37,8 @@ class Queues:
 
             queue = {
                 'name': queue_name,
-                'created_at': time.time(),
-                'updated_at': 0,
+                'created_at': datetime.utcnow(),
+                'updated_at': None,
                 'size': 0,
                 'messages_count': 0
             }
@@ -47,17 +47,17 @@ class Queues:
                 queue = queue_result[0]
 
             msg_entry = {
-                'created_at': time.time(),
+                'created_at': datetime.utcnow(),
                 'created_by': application,
-                'consumed_at': 0,
-                'consumed_by': "",
-                'lock_expires_at': 0,
+                'consumed_at': None,
+                'consumed_by': None,
+                'lock_expires_at': None,
                 'size': 0,
                 'body': body
             }
             msg_entry['size'] = len(pybinn.dumps(msg_entry))
             queue['size'] += msg_entry['size']
-            queue['updated_at'] = time.time()
+            queue['updated_at'] = datetime.utcnow()
             queue['messages_count'] += 1
 
             queue_messages.add(msg_entry)
@@ -68,7 +68,7 @@ class Queues:
 
             return {
                 'id': str(msg_entry['_id']),
-                'created_at': msg_entry['created_at']
+                'created_at': msg_entry['created_at'].isoformat()
             }
 
     @staticmethod
