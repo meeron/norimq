@@ -1,6 +1,6 @@
 """Storage module"""
 
-from datetime import  datetime
+from datetime import datetime
 import norimdb
 import pybinn
 from core import config
@@ -23,8 +23,6 @@ class Queues:
             if len(result) == 0:
                 return None
 
-            result[0]['id'] = str(norimdb.DocId(result[0]['_id']))
-            del result[0]['_id']
             return result[0]
 
     @staticmethod
@@ -62,13 +60,13 @@ class Queues:
 
             queue_messages.add(msg_entry)
             if '_id' in queue:
-                queues.set(norimdb.DocId(queue['_id']), queue)
+                queues.set(queue['_id'], queue)
             else:
                 queues.add(queue)
 
             return {
-                'id': str(msg_entry['_id']),
-                'created_at': msg_entry['created_at'].isoformat()
+                'id': msg_entry['_id'],
+                'created_at': msg_entry['created_at']
             }
 
     @staticmethod
@@ -78,11 +76,6 @@ class Queues:
         with open_db() as db:
             queues_coll = db.get_collection("queues")
             queues = queues_coll.find({})
-
-            for queue in queues:
-                queue['id'] = str(norimdb.DocId(queue['_id']))
-                del queue['_id']
-
             return queues
 
     @staticmethod

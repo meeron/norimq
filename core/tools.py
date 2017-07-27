@@ -3,6 +3,7 @@
 import json
 from datetime import datetime
 import cherrypy
+from norimdb import DocId
 
 
 class JsonEncoder(json.JSONEncoder):
@@ -11,6 +12,8 @@ class JsonEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
             return o.isoformat()
+        if isinstance(o, DocId):
+            return str(o)
         return super().default(o)
 
     def iterencode(self, value):
