@@ -5,7 +5,7 @@ from datetime import datetime
 import norimdb
 import pybinn
 
-from core import config
+from src.core import config
 
 
 def open_db():

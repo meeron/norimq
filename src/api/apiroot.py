@@ -2,7 +2,7 @@
 
 import cherrypy
 
-from core import storage
+from src.core import storage
 
 
 def bad_request(message):
