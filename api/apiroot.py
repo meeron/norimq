@@ -11,6 +11,11 @@ def bad_request(message):
     }
 
 
+def not_found():
+    cherrypy.response.status = 404
+    return {}
+
+
 class Api:
     """Api root class"""
 
@@ -30,14 +35,17 @@ class Api:
 class Queues:
     """Queues class"""
  
-    def GET(self, name=None):
+    def GET(self, name=None, command=None):
+        if command is not None:
+            if command == "messages":
+                return storage.Queues.getmsgs(name)
+            return not_found()
+
         if name:
             queue = storage.Queues.get(name)
             if queue:
                 return storage.Queues.get(name)
-
-            cherrypy.response.status = 404
-            return {}
+            return not_found()
 
         return storage.Queues.getall()
 

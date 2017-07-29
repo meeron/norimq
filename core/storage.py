@@ -92,3 +92,17 @@ class Queues:
                 raise Exception('queue was not removed.')
             db.remove_collection("q_{}".format(queue_name))
             return True
+
+    @staticmethod
+    def getmsgs(queue_name):
+        """Gets messages from queue"""
+
+        with open_db() as db:
+            queue_messages = db.get_collection("q_{}".format(queue_name))
+            result = queue_messages.find({
+                'consumed_at': {'$ne': None}
+            }, 'created_at')
+            for obj in result:
+                del obj['body']
+            return result
+
