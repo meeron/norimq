@@ -1,6 +1,7 @@
 """Queues api module"""
 
 import cherrypy
+
 from core import storage
 
 

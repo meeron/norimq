@@ -1,11 +1,10 @@
 """Server module"""
 
 import cherrypy
-from web import Home
 from api import Api
-from core import config, tools
-
-print(__file__)
+from core import tools
+from web import Home
+from core import config
 
 if __name__ == '__main__':
     config.init()
