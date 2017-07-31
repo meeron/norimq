@@ -3,10 +3,13 @@
 import cherrypy
 import urllib
 from io import BytesIO
+import json
+from tempfile import TemporaryDirectory
 
+import src.core.tools
 from src.api import Api
 from src.core import config
-from tempfile import TemporaryDirectory
+
 
 
 # https://stackoverflow.com/questions/33368837/how-to-unittest-a-cherrypy-webapp-in-python-3
@@ -18,18 +21,23 @@ class CherryPyClient:
         self.__remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, "")
         self.__app_name = app_name
 
-    def webapp_request(self, path='/', method='GET', **kwargs):
+    def get(self, path):
+        return self.__webapp_request(path=path, method='GET')
+
+    def put(self, path, body_dict):
+        return self.__webapp_request(path=path, method='PUT', body=json.dumps(body_dict))
+
+    def delete(self, path):
+        return self.__webapp_request(path=path, method='DELETE')
+
+    def __webapp_request(self, path='/', method='GET', body=None, content_type='application/json'):
         headers = [('Host', '127.0.0.1')]
         qs = fd = None
 
         if method in ['POST', 'PUT']:
-            qs = urllib.parse.urlencode(kwargs)
-            headers.append(('content-type', 'application/x-www-form-urlencoded'))
-            headers.append(('content-length', '%d' % len(qs)))
-            fd = BytesIO(qs.encode('utf8'))
-            qs = None
-        elif kwargs:
-            qs = urllib.parse.urlencode(kwargs)
+            headers.append(('content-type', content_type))
+            headers.append(('content-length', '%d' % len(body)))
+            fd = BytesIO(body.encode('utf8'))
 
         # Get our application and run the request against it
         app = cherrypy.tree.apps[self.__app_name]
@@ -54,6 +62,7 @@ class CherryPyTestServer:
         self.__tempdir = TemporaryDirectory()
         config.current = {'storage': {'dbPath': self.__tempdir.name}}
 
+        cherrypy.config['tools.json_out.handler'] = src.core.tools.json_handler
         cherrypy.config.update({'environment': "test_suite"})
 
         # prevent the HTTP server from ever starting
@@ -70,5 +79,11 @@ class CherryPyTestServer:
 
 class StatusCodes:
 
+    BAD_REQUEST = "400 Bad Request"
     NOT_FOUND = "404 Not Found"
     OK = "200 OK"
+    CREATED = "201 Created"
+
+
+def parse_response(response):
+    return json.loads(response.body[0].decode('utf8'))

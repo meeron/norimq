@@ -3,13 +3,12 @@
 import cherrypy
 
 from src.core import storage
+from .helpers import *
 
 
-def bad_request(message):
+def bad_request(response_dict):
     cherrypy.response.status = 400
-    return {
-        'message': message
-    }
+    return response_dict
 
 
 def not_found():
@@ -37,14 +36,12 @@ class Queues:
     """Queues class"""
  
     def GET(self, name=None, command=None):
-        if command is not None:
-            if command == "messages":
-                return storage.Queues.getmsgs(name)
-            return not_found()
-
         if name:
             queue = storage.Queues.get(name)
             if queue:
+                if command is not None:
+                    if command == "messages":
+                        return storage.Queues.getmsgs(name)
                 return storage.Queues.get(name)
             return not_found()
 
@@ -54,9 +51,9 @@ class Queues:
     def PUT(self, name):
         data = cherrypy.request.json
         if 'application' not in data:
-            return bad_request("'application' property is required.")
+            return bad_request({'code': ErrorCodes.APPLICATION_REQUIRED})
         if 'body' not in data:
-            return bad_request("'body' is required.")
+            return bad_request({'code': ErrorCodes.BODY_REQUIRED})
 
         cherrypy.response.status = 201
         return storage.Queues.addmsg(name, data['application'], data['body'])

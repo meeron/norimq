@@ -89,7 +89,7 @@ class Queues:
             result = queues_coll.find({'name': queue_name})
             if len(result) == 0:
                 return False
-            count = queues_coll.remove(norimdb.DocId(result[0]['_id']))
+            count = queues_coll.remove(result[0]['_id'])
             if count == 0:
                 raise Exception('queue was not removed.')
             db.remove_collection("q_{}".format(queue_name))
@@ -102,7 +102,7 @@ class Queues:
         with open_db() as db:
             queue_messages = db.get_collection("q_{}".format(queue_name))
             result = queue_messages.find({
-                'consumed_at': {'$ne': None}
+                'consumed_at': None
             }, 'created_at')
             for obj in result:
                 del obj['body']
