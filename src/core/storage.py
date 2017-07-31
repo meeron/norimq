@@ -28,7 +28,7 @@ class Queues:
             return result[0]
 
     @staticmethod
-    def addmsg(queue_name, application, body):
+    def add_msg(queue_name, application, body):
         """Adds message to queue"""
 
         with open_db() as db:
@@ -72,7 +72,7 @@ class Queues:
             }
 
     @staticmethod
-    def getall():
+    def get_all():
         """Gets queues list"""
 
         with open_db() as db:
@@ -96,7 +96,7 @@ class Queues:
             return True
 
     @staticmethod
-    def getmsgs(queue_name):
+    def get_msgs(queue_name):
         """Gets messages from queue"""
 
         with open_db() as db:

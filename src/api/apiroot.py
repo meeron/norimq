@@ -41,11 +41,11 @@ class Queues:
             if queue:
                 if command is not None:
                     if command == "messages":
-                        return storage.Queues.getmsgs(name)
+                        return storage.Queues.get_msgs(name)
                 return storage.Queues.get(name)
             return not_found()
 
-        return storage.Queues.getall()
+        return storage.Queues.get_all()
 
     @cherrypy.tools.json_in()
     def PUT(self, name):
@@ -56,7 +56,7 @@ class Queues:
             return bad_request({'code': ErrorCodes.BODY_REQUIRED})
 
         cherrypy.response.status = 201
-        return storage.Queues.addmsg(name, data['application'], data['body'])
+        return storage.Queues.add_msg(name, data['application'], data['body'])
 
     def DELETE(self, name):
         status = 404
