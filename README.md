@@ -1,2 +1,2 @@
 # norimq
-Message broker server
+Simple message broker server
