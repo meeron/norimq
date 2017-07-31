@@ -1,0 +1,15 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+
+install:
+  - pip install cherrypy
+  - pip install https://github.com/meeron/pybinn/archive/v0.9.5-beta.tar.gz
+  - pip install https://github.com/meeron/norimdb/archive/v0.9.4-alpha.sqlite.tar.gz
+
+# command to run tests
+script: py.test -v -s
+
+branches:
+  only: master
