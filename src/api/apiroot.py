@@ -15,6 +15,7 @@ class Api:
         queues_routes.explicit = False
         queues_routes.connect("queues_list", "/queues", self.queues, action='list')
         queues_routes.connect("queues_actions", "/queues/{name}/{action}", self.queues)
+        queues_routes.connect("queues_msg_body", "/queues/{name}/{msg_id}/body", self.queues, action='msg_body')
 
         return {
             '/queues': {
@@ -54,6 +55,15 @@ class Queues:
         queue = storage.Queues.get(name)
         if queue:
             return ok(storage.Queues.get_msgs(name))
+        return not_found()
+
+    def msg_body(self, name, msg_id):
+        if cherrypy.request.method != 'GET':
+            return method_not_allowed()
+        body = storage.Queues.get_msg_body(name, msg_id)
+        if body:
+            cherrypy.response.headers['Content-Type'] = 'text/plain'
+            return body
         return not_found()
 
     @cherrypy.tools.json_in()

@@ -108,3 +108,19 @@ class Queues:
                 del obj['body']
             return result
 
+    @staticmethod
+    def get_msg_body(queue_name, msg_id):
+        """Gets message body"""
+
+        try:
+            # TODO: create method is_docid
+            doc_id = norimdb.DocId(msg_id)
+        except:
+            return None
+
+        with open_db() as db:
+            queue_messages = db.get_collection("q_{}".format(queue_name))
+            msg = queue_messages.get(doc_id)
+            if msg:
+                return msg['body']
+            return None

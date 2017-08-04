@@ -1,5 +1,7 @@
 """Api queues testing module"""
 
+import norimdb
+
 from .helpers import *
 from src.api.helpers import *
 
@@ -52,9 +54,28 @@ class TestApiQueues:
         assert len(response_object) == 1
         assert '_id' in response_object[0]
 
+    def test_get_message_body(self):
+        response = self.client.get("/api/queues/test/messages")
+        msg = parse_response(response)
+        response = self.client.get("/api/queues/test/%s/body" % msg[0]['_id'])
+        assert response.status == StatusCodes.OK
+
+    def test_get_message_body_invalid_id(self):
+        response = self.client.get("/api/queues/test/invalid-id/body")
+        assert response.status == StatusCodes.NOT_FOUND
+
+    def test_get_message_body_random_id(self):
+        random_id = norimdb.DocId()
+        response = self.client.get("/api/queues/test/%s/body" % random_id)
+        assert response.status == StatusCodes.NOT_FOUND
+
     def test_get_queue_delete_ok(self):
         response = self.client.delete("/api/queues/test/delete")
         assert response.status == StatusCodes.OK
+
+    def test_get_message_body_no_queue(self):
+        response = self.client.get("/api/queues/test/f2c6a24976598b38/body")
+        assert response.status == StatusCodes.NOT_FOUND
 
     def test_get_queue_delete_not_found(self):
         response = self.client.delete("/api/queues/test123/delete")
