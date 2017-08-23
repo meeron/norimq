@@ -8,7 +8,10 @@ from src.core import config
 
 if __name__ == '__main__':
     config.init()
-    cherrypy.config['tools.json_out.handler'] = tools.json_handler
+    cherrypy.config.update({
+        'tools.json_out.handler': tools.json_handler,
+        'server.socket_port': config.Network.port(),
+    })
 
     home = Home()
     api = Api()

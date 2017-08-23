@@ -4,6 +4,8 @@ import json
 import os
 
 
+DEFAULT_PORT = 5891
+
 global_config_path = "app-config.json"
 current = None
 
@@ -34,3 +36,13 @@ class Storage:
     @staticmethod
     def db_path():
         return current['storage']['dbPath']
+
+
+class Network:
+    """Network configuration"""
+
+    @staticmethod
+    def port():
+        if 'network' in current and 'port' in current['network']:
+            return current['network']['port']
+        return DEFAULT_PORT
