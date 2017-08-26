@@ -1,6 +1,8 @@
 """Logging module"""
 
 import logging
+from os import path
+from src.core import config
 
 
 class Logger(logging.getLoggerClass()):
@@ -10,8 +12,28 @@ class Logger(logging.getLoggerClass()):
         if not name:
             name = "System"
         super().__init__(name, level=logging.INFO)
-        ch = logging.StreamHandler()
-        formatter = logging.Formatter('[{asctime}] {name} {levelname}: {message}', style='{')
-        ch.setFormatter(formatter)
-        self.addHandler(ch)
+        self.addHandler(_create_handler('ch'))
 
+        fh = _create_handler('fh')
+        if fh:
+            self.addHandler(fh)
+
+
+def _create_formatter():
+    return logging.Formatter('[{asctime}] {name} {levelname}: {message}', style='{')
+
+
+def _create_handler(h_type):
+    handler = None
+
+    if h_type == 'ch':
+        handler = logging.StreamHandler()
+    if h_type == 'fh' and path.isdir(config.Logs.dir_path()):
+        handler = logging.FileHandler(filename=config.Logs.logfile_path())
+
+    if not handler:
+        return None
+
+    handler.setFormatter(_create_formatter())
+
+    return handler

@@ -2,10 +2,12 @@
 
 import json
 import os
+from datetime import date
 
 
 DEFAULT_PORT = 5891
 DEFAULT_IP = "0.0.0.0"
+DEFAULT_LOGS_DIR = "/var/norimq/logs"
 
 global_config_path = "app-config.json"
 current = None
@@ -53,3 +55,18 @@ class Network:
         if 'network' in current and 'ip' in current['network']:
             return current['network']['ip']
         return DEFAULT_IP
+
+
+class Logs:
+    """Logs configuration"""
+
+    @staticmethod
+    def dir_path():
+        if 'logs' in current and 'dirPath' in current['logs']:
+            return current['logs']['dirPath']
+        return DEFAULT_LOGS_DIR
+
+    @staticmethod
+    def logfile_path():
+        filename = date.today().isoformat() + ".log"
+        return os.path.join(Logs.dir_path(), filename)
