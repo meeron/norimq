@@ -5,6 +5,7 @@ import os
 
 
 DEFAULT_PORT = 5891
+DEFAULT_IP = "0.0.0.0"
 
 global_config_path = "app-config.json"
 current = None
@@ -46,3 +47,9 @@ class Network:
         if 'network' in current and 'port' in current['network']:
             return current['network']['port']
         return DEFAULT_PORT
+
+    @staticmethod
+    def ip():
+        if 'network' in current and 'ip' in current['network']:
+            return current['network']['ip']
+        return DEFAULT_IP
