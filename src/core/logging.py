@@ -11,7 +11,7 @@ class Logger(logging.getLoggerClass()):
     def __init__(self, name=None):
         if not name:
             name = "System"
-        super().__init__(name, level=logging.INFO)
+        super().__init__(name, level=config.Logs.min_level())
         self.addHandler(_create_handler('ch'))
 
         fh = _create_handler('fh')

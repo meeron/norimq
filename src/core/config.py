@@ -2,6 +2,7 @@
 
 import json
 import os
+import logging
 from datetime import date
 
 
@@ -70,3 +71,20 @@ class Logs:
     def logfile_path():
         filename = date.today().isoformat() + ".log"
         return os.path.join(Logs.dir_path(), filename)
+
+    @staticmethod
+    def min_level():
+        level = "INFO"
+        if 'logs' in current and 'minLevel' in current['logs']:
+            level = current['logs']['minLevel']
+
+        if level == "DEBUG":
+            return logging.DEBUG
+        if level == "INFO":
+            return logging.INFO
+        if level == "WARN":
+            return logging.WARNING
+        if level == "ERROR":
+            return logging.ERROR
+
+        return logging.INFO
