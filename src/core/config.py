@@ -4,6 +4,7 @@ import json
 import os
 import logging
 from datetime import date
+from src.core import tools
 
 
 DEFAULT_PORT = 5891
@@ -32,6 +33,21 @@ def init():
             env_config = json.load(file_env)
 
     current = {**current, **env_config}
+
+
+def cherrypy():
+    config = {
+        'tools.json_out.handler': tools.json_handler,
+        'server.socket_host': Network.ip(),
+        'server.socket_port': Network.port(),
+        'log.screen': False
+    }
+
+    if os.path.isdir(Logs.dir_path()):
+        config['log.access_file'] = Logs.cherrypy_logfile_path()
+        config['log.error_file'] = Logs.cherrypy_logfile_path()
+
+    return config
 
 
 class Storage:
@@ -69,7 +85,12 @@ class Logs:
 
     @staticmethod
     def logfile_path():
-        filename = date.today().isoformat() + ".log"
+        filename = "%s.log" % date.today().isoformat()
+        return os.path.join(Logs.dir_path(), filename)
+
+    @staticmethod
+    def cherrypy_logfile_path():
+        filename = "cherrypy_%s.log" % date.today().isoformat()
         return os.path.join(Logs.dir_path(), filename)
 
     @staticmethod
