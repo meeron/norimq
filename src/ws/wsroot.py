@@ -8,14 +8,14 @@ from pybinn import loads
 from src.core.logging import Logger
 from src.core.tools import request_id
 
-HEAD_EMPTY = 0x00
-HEAD_GET_ALL = 0xa1
-HEAD_OK = 0xf1
-HEAD_ERROR = 0xff
-HEAD_ALL = {
-    HEAD_EMPTY: "HEAD_EMPTY",
-    HEAD_GET_ALL: "HEAD_GET_ALL",
-    HEAD_ERROR: "HEAD_ERROR"
+EMPTY = 0x00
+GET_ALL = 0xa1
+OK = 0xf1
+ERROR = 0xff
+ALL = {
+    EMPTY: "EMPTY",
+    GET_ALL: "GET_ALL",
+    ERROR: "ERROR"
 }
 
 
@@ -63,17 +63,17 @@ class QueuesBinaryWebSocketHandler(WebSocketBase):
             request = BinaryMessage(message.data)
             response = BinaryMessage()
 
-            if request.header not in HEAD_ALL:
+            if request.header not in ALL:
                 err_msg = "Unknown message %s" % request.header
                 self._logger.warning(err_msg)
-                response.set(HEAD_ERROR, err_msg, self._conn_id)
+                response.set(ERROR, err_msg, self._conn_id)
             else:
-                self._logger.debug("Received message %s" % HEAD_ALL[request.header])
+                self._logger.debug("Received message %s" % ALL[request.header])
 
             self.send_msg(response)
         except Exception as ex:
             self._logger.error(ex)
-            self.send_msg(BinaryMessage.create(HEAD_ERROR, "ServerBinaryMessage error: %s" % ex, self._conn_id))
+            self.send_msg(BinaryMessage.create(ERROR, "Server error: %s" % ex, self._conn_id))
 
 
 class BinaryMessage:
@@ -81,10 +81,10 @@ class BinaryMessage:
         if message is not None:
             self._msg_dict = loads(message)
         else:
-            self.set(HEAD_EMPTY, None)
+            self.set(EMPTY, None)
 
     def set(self, head, body, reqid=None):
-        if head not in HEAD_ALL:
+        if head not in ALL:
             raise Exception("Invalid header %s" % head)
         self._msg_dict = {'head': head, 'body': body, 'reqid': reqid}
 
