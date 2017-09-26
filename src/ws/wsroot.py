@@ -6,6 +6,7 @@ from pybinn import dumps
 from pybinn import loads
 
 from src.core.logging import Logger
+from src.core.tools import request_id
 
 HEAD_EMPTY = b'\x00'
 HEAD_GET_ALL = b'\xa1'
@@ -39,17 +40,16 @@ class QueuesBinaryWebSocketHandler(WebSocketBase):
 
     def __init__(self, sock, protocols=None, extensions=None, environ=None, heartbeat_freq=None):
         super().__init__(sock, protocols, extensions, environ, heartbeat_freq)
-        self._logger = Logger("QueuesBinaryWebSocket")
+        self._conn_id = request_id()
+        self._logger = Logger("QueuesBinaryWebSocket %s" % self._conn_id)
 
     def opened(self):
         ip = self.peer_address[0]
         port = self.peer_address[1]
-        self._logger.debug("Connection from %s:%s" % (ip, port))
+        self._logger.info("Connection from %s:%d" % (ip, port))
 
     def closed(self, code, reason=None):
-        ip = self.peer_address[0]
-        port = self.peer_address[1]
-        self._logger.debug("Closed connection from %s:%s" % (ip, port))
+        self._logger.info("Connection closed")
 
     def send_msg(self, binary_message):
         self.send(binary_message.bytes, True)

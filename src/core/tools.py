@@ -2,6 +2,10 @@
 
 import json
 from datetime import datetime
+from os import urandom
+from time import time
+from struct import pack
+from binascii import hexlify
 import cherrypy
 from norimdb import DocId
 
@@ -26,4 +30,8 @@ def json_handler(*args, **kwargs):
     # Adapted from cherrypy/lib/jsontools.py
     value = cherrypy.serving.request._json_inner_handler(*args, **kwargs)
     return JsonEncoder().iterencode(value)
+
+
+def request_id():
+    return hexlify(pack('I', int(time())) + urandom(4)).decode('utf8')
 
