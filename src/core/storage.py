@@ -96,16 +96,23 @@ class Queues:
             return True
 
     @staticmethod
+    def get_head_msgs(queue_name):
+        """Gets messages from queue without body"""
+
+        result = Queues.get_msgs(queue_name)
+        for obj in result:
+            del obj['body']
+        return result
+
+    @staticmethod
     def get_msgs(queue_name):
-        """Gets messages from queue"""
+        """Gets messages from queue with body"""
 
         with open_db() as db:
             queue_messages = db.get_collection("q_{}".format(queue_name))
             result = queue_messages.find({
                 'consumed_at': None
             }, 'created_at')
-            for obj in result:
-                del obj['body']
             return result
 
     @staticmethod

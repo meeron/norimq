@@ -54,7 +54,7 @@ class Queues:
             return method_not_allowed()
         queue = storage.Queues.get(name)
         if queue:
-            return ok(storage.Queues.get_msgs(name))
+            return ok(storage.Queues.get_head_msgs(name))
         return not_found()
 
     def msg_body(self, name, msg_id):
