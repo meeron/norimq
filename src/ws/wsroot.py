@@ -2,21 +2,10 @@
 
 import cherrypy
 from ws4py.websocket import WebSocket as WebSocketBase
-from pybinn import dumps
-from pybinn import loads
 
 from src.core.logging import Logger
 from src.core.tools import request_id
-
-EMPTY = 0x00
-GET_ALL = 0xa1
-OK = 0xf1
-ERROR = 0xff
-ALL = {
-    EMPTY: "EMPTY",
-    GET_ALL: "GET_ALL",
-    ERROR: "ERROR"
-}
+from src.ws.helpers import *
 
 
 class WebSocket:
@@ -52,7 +41,7 @@ class QueuesBinaryWebSocketHandler(WebSocketBase):
     def closed(self, code, reason=None):
         self._logger.info("Connection closed")
 
-    def send_msg(self, binary_message):
+    def send_msg(self, binary_message: BinaryMessage):
         self.send(binary_message.bytes, True)
 
     def received_message(self, message):
@@ -68,40 +57,14 @@ class QueuesBinaryWebSocketHandler(WebSocketBase):
                 self._logger.warning(err_msg)
                 response.set(ERROR, err_msg, self._conn_id)
             else:
-                self._logger.debug("Received message %s" % ALL[request.header])
+                self._logger.debug("Received message %s: %s" % (ALL[request.header], request.body))
 
-            self.send_msg(response)
+            req_handler = RequestHandler(request)
+            response = req_handler.response()
+
+            if response is not None:
+                self.send_msg(response)
         except Exception as ex:
             self._logger.error(ex)
-            self.send_msg(BinaryMessage.create(ERROR, "Server error: %s" % ex, self._conn_id))
+            self.send_msg(BinaryMessage.create(ERROR, "%s" % ex, self._conn_id))
 
-
-class BinaryMessage:
-    def __init__(self, message=None):
-        if message is not None:
-            self._msg_dict = loads(message)
-        else:
-            self.set(EMPTY, None)
-
-    def set(self, head, body, reqid=None):
-        if head not in ALL:
-            raise Exception("Invalid header %s" % head)
-        self._msg_dict = {'head': head, 'body': body, 'reqid': reqid}
-
-    @property
-    def bytes(self):
-        return dumps(self._msg_dict)
-
-    @property
-    def header(self):
-        return self._msg_dict['head']
-
-    @property
-    def body(self):
-        return self._msg_dict['body']
-
-    @staticmethod
-    def create(head, body, reqid=None):
-        obj = BinaryMessage()
-        obj.set(head, body, reqid)
-        return obj
