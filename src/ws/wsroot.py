@@ -2,6 +2,7 @@
 
 import cherrypy
 from ws4py.websocket import WebSocket as WebSocketBase
+from types import GeneratorType
 
 from src.core.logging import Logger
 from src.core.tools import request_id
@@ -41,8 +42,14 @@ class QueuesBinaryWebSocketHandler(WebSocketBase):
     def closed(self, code, reason=None):
         self._logger.info("Connection closed")
 
-    def send_msg(self, binary_message: BinaryMessage):
-        self.send(binary_message.bytes, True)
+    def send_msg(self, binary_message_or_list):
+        if isinstance(binary_message_or_list, BinaryMessage):
+            self.send(binary_message_or_list.bytes, True)
+        elif isinstance(binary_message_or_list, list) or isinstance(binary_message_or_list, GeneratorType):
+            for bin_msg in binary_message_or_list:
+                self.send(bin_msg.bytes, True)
+        else:
+            raise Exception("Invalid data type to send (%s)" % type(binary_message_or_list))
 
     def received_message(self, message):
         if not message.is_binary:

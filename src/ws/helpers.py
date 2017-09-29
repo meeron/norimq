@@ -9,12 +9,14 @@ DOCID_TYPE = b'\xf6'
 
 EMPTY = 0x00
 GET_ALL = 0xa1
-Q_MSGS = 0xf1
+Q_MSG = 0xf1
+Q_MSG_ACK = 0xf2
 ERROR = 0xff
 ALL = {
     EMPTY: "EMPTY",
     GET_ALL: "GET_ALL",
-    Q_MSGS: "Q_MSGS",
+    Q_MSG: "Q_MSG",
+    Q_MSG_ACK: "Q_MSG_ACK",
     ERROR: "ERROR"
 }
 
@@ -78,9 +80,16 @@ class RequestHandler:
         result = storage.Queues.get_msgs(queue)
         for r in result:
             r['_id'] = str(r['_id'])
-        return BinaryMessage.create(Q_MSGS, result)
+            yield BinaryMessage.create(Q_MSG, {'queue': queue, 'msg': r})
+
+    def _queue_msg_consumed(self):
+        queue = self._req.body['queue']
+        msg_id = self._req.body['msg_id']
+        return None
 
     def response(self):
         if self._req.header == GET_ALL:
             return self._get_all()
+        if self._req.header == Q_MSG_ACK:
+            return self._queue_msg_consumed()
         return None
