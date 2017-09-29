@@ -14,8 +14,12 @@ class WebSocket:
 
     @cherrypy.expose
     def queues(self, queue_name, mode='binary'):
-        cherrypy.request.ws_handler.set(queue_name, mode)
-        handler = cherrypy.request.ws_handler
+        if queue_exists(queue_name):
+            cherrypy.request.ws_handler.set(queue_name, mode)
+            handler = cherrypy.request.ws_handler
+        else:
+            cherrypy.response.status = 404
+            return "Queue '%s' not found" % queue_name
 
     @staticmethod
     def config():

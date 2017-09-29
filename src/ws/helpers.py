@@ -135,3 +135,10 @@ class QueuesRequestHandler:
         if request.header == Q_MSG_ACK:
             return self._queue_msg_consumed(request.body['msg_id'])
         return None
+
+
+def queue_exists(queue_name):
+    if storage.Queues.get(queue_name):
+        return True
+
+    return False
