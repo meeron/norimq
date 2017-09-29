@@ -8,12 +8,14 @@ from src.core import storage
 DOCID_TYPE = b'\xf6'
 
 EMPTY = 0x00
+OK = 0x99
 GET_ALL = 0xa1
 Q_MSG = 0xf1
 Q_MSG_ACK = 0xf2
 ERROR = 0xff
 ALL = {
     EMPTY: "EMPTY",
+    OK: "OK",
     GET_ALL: "GET_ALL",
     Q_MSG: "Q_MSG",
     Q_MSG_ACK: "Q_MSG_ACK",
@@ -126,14 +128,16 @@ class QueuesRequestHandler:
             r['_id'] = str(r['_id'])
             yield WsMessageFactory.create(self._mode, Q_MSG, {'queue': self._queue, 'msg': r})
 
-    def _queue_msg_consumed(self, msg_id):
+    def _queue_msg_consumed(self, msg_id, application):
+        storage.Queues.consumed(self._queue, msg_id, application)
         return None
 
     def get_response(self, request: WsMessage):
         if request.header == GET_ALL:
             return self._get_all()
         if request.header == Q_MSG_ACK:
-            return self._queue_msg_consumed(request.body['msg_id'])
+            self._queue_msg_consumed(request.body['msg_id'], request.application)
+            return WsMessageFactory.create(self._mode, OK, {'head': request.header, 'body': request.body})
         return None
 
 

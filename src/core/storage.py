@@ -131,3 +131,11 @@ class Queues:
             if msg:
                 return msg['body']
             return None
+
+    @staticmethod
+    def consumed(queue_name, msg_id, consumed_by):
+        """Update message"""
+
+        with open_db() as db:
+            queue_messages = db.get_collection("q_{}".format(queue_name))
+            queue_messages.update(norimdb.DocId(msg_id), consumed_at=datetime.utcnow(), consumed_by=consumed_by)
