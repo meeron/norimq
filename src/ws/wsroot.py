@@ -13,26 +13,39 @@ class WebSocket:
     """Web Socket root class"""
 
     @cherrypy.expose
-    def queuesb(self):
+    def queues(self, queue_name, mode='binary'):
+        cherrypy.request.ws_handler.set(queue_name, mode)
         handler = cherrypy.request.ws_handler
 
     @staticmethod
     def config():
         return {
-            '/queuesb': {
+            '/queues': {
                 'tools.websocket.on': True,
-                'tools.websocket.handler_cls': QueuesBinaryWebSocketHandler
+                'tools.websocket.handler_cls': QueuesWebSocketHandler
             }
         }
 
 
-class QueuesBinaryWebSocketHandler(WebSocketBase):
-    """Queue web socket handler"""
+class QueuesWebSocketHandler(WebSocketBase):
+    """Queues web socket handler"""
 
     def __init__(self, sock, protocols=None, extensions=None, environ=None, heartbeat_freq=None):
         super().__init__(sock, protocols, extensions, environ, heartbeat_freq)
         self._conn_id = request_id()
-        self._logger = Logger("QueuesBinaryWebSocket %s" % self._conn_id)
+        self._logger = Logger("QueuesWSHandler %s" % self._conn_id)
+        self._queue = None
+        self._mode = None
+
+    def set(self, queue_name, mode):
+        if mode not in MODES:
+            err_msg = "Invalid QueuesWebSocketHandler mode=%s" % mode
+            self._logger.error(err_msg)
+            raise Exception(err_msg)
+
+        self._queue = queue_name
+        self._mode = mode
+        self._logger.debug("Queue '%s' in '%s' mode" % (queue_name, mode))
 
     def opened(self):
         ip = self.peer_address[0]
@@ -42,36 +55,33 @@ class QueuesBinaryWebSocketHandler(WebSocketBase):
     def closed(self, code, reason=None):
         self._logger.info("Connection closed")
 
-    def send_msg(self, binary_message_or_list):
-        if isinstance(binary_message_or_list, BinaryMessage):
-            self.send(binary_message_or_list.bytes, True)
-        elif isinstance(binary_message_or_list, list) or isinstance(binary_message_or_list, GeneratorType):
-            for bin_msg in binary_message_or_list:
-                self.send(bin_msg.bytes, True)
+    def send_msg(self, message_or_list):
+        if isinstance(message_or_list, WsMessage):
+            self.send(message_or_list.get_data(), self._mode == MODE_BINARY)
+        elif isinstance(message_or_list, list) or isinstance(message_or_list, GeneratorType):
+            for bin_msg in message_or_list:
+                self.send_msg(bin_msg)
         else:
-            raise Exception("Invalid data type to send (%s)" % type(binary_message_or_list))
+            raise Exception("Invalid data type to send (%s)" % type(message_or_list))
 
     def received_message(self, message):
-        if not message.is_binary:
-            return
-
         try:
-            request = BinaryMessage(message.data)
-            response = BinaryMessage()
-
+            request = WsMessageFactory.create_from_message(self._mode, message)
             if request.header not in ALL:
                 err_msg = "Unknown message %s" % request.header
                 self._logger.warning(err_msg)
-                response.set(ERROR, err_msg, self._conn_id)
+                self.send_msg(WsMessageFactory.create(self._mode, ERROR, err_msg, self._conn_id))
             else:
-                self._logger.debug("Received message %s: %s" % (ALL[request.header], request.body))
+                self._logger.debug("Received message %s from '%s': %s"
+                                   % (ALL[request.header], request.application, request.body))
 
-            req_handler = RequestHandler(request)
-            response = req_handler.response()
-
-            if response is not None:
+            handler = QueuesRequestHandler(self._mode, self._queue)
+            response = handler.get_response(request)
+            if response:
                 self.send_msg(response)
         except Exception as ex:
             self._logger.error(ex)
-            self.send_msg(BinaryMessage.create(ERROR, "%s" % ex, self._conn_id))
+            err_msg = WsMessageFactory.create(self._mode, ERROR, "%s" % ex, self._conn_id)
+            self.send_msg(err_msg)
+
 
