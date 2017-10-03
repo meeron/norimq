@@ -62,6 +62,7 @@ class QueuesWebSocketHandler(WebSocketBase):
     def send_msg(self, message_or_list):
         if isinstance(message_or_list, WsMessage):
             self.send(message_or_list.get_data(), self._mode == MODE_BINARY)
+            self._logger.debug("Sent '%s' message: %s" % (ALL[message_or_list.header], message_or_list))
         elif isinstance(message_or_list, list) or isinstance(message_or_list, GeneratorType):
             for bin_msg in message_or_list:
                 self.send_msg(bin_msg)

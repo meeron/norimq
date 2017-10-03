@@ -62,6 +62,12 @@ class WsMessage:
     def _parse(self, message):
         raise NotImplementedError()
 
+    def __str__(self):
+        msg_dict = dict(self._msg_dict)
+        if self.header == Q_MSG:
+            del msg_dict['body']['msg']['body']
+        return str(msg_dict['body'])
+
 
 class BinaryMessage(WsMessage):
     """BinaryMessage type"""
