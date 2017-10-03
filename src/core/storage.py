@@ -116,6 +116,15 @@ class Queues:
             return result
 
     @staticmethod
+    def get_first_msg(queue_name):
+        """Get first not consumed message from queue"""
+
+        result = Queues.get_msgs(queue_name)
+        if len(result) > 0:
+            return result[0]
+        return None
+
+    @staticmethod
     def get_msg_body(queue_name, msg_id):
         """Gets message body"""
 

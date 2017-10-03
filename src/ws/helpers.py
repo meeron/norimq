@@ -1,22 +1,19 @@
 """Web socket helpers module"""
 
-from pybinn import dumps, loads, CustomEncoder
-from norimdb import DocId
+from pybinn import dumps, loads
 
 from src.core import storage
 
-DOCID_TYPE = b'\xf6'
-
 EMPTY = 0x00
 OK = 0x99
-GET_ALL = 0xa1
+GET = 0xa1
 Q_MSG = 0xf1
 Q_MSG_ACK = 0xf2
 ERROR = 0xff
 ALL = {
     EMPTY: "EMPTY",
     OK: "OK",
-    GET_ALL: "GET_ALL",
+    GET: "GET",
     Q_MSG: "Q_MSG",
     Q_MSG_ACK: "Q_MSG_ACK",
     ERROR: "ERROR"
@@ -24,16 +21,6 @@ ALL = {
 
 MODE_BINARY = 'binary'
 MODES = [MODE_BINARY]
-
-
-class DocIdEncoder(CustomEncoder):
-    """DocId type encoder"""
-
-    def __init__(self):
-        super().__init__(DocId, DOCID_TYPE)
-
-    def getbytes(self, value):
-        return value.to_bytes()
 
 
 class WsMessage:
@@ -83,7 +70,7 @@ class BinaryMessage(WsMessage):
         return loads(message)
 
     def get_data(self):
-        return dumps(self._msg_dict, DocIdEncoder())
+        return dumps(self._msg_dict)
 
     @property
     def is_binary(self):
@@ -122,22 +109,28 @@ class QueuesRequestHandler:
         self._queue = queue_name
         self._mode = mode
 
-    def _get_all(self):
-        result = storage.Queues.get_msgs(self._queue)
-        for r in result:
-            r['_id'] = str(r['_id'])
-            yield WsMessageFactory.create(self._mode, Q_MSG, {'queue': self._queue, 'msg': r})
+    def _get(self):
+        result = storage.Queues.get_first_msg(self._queue)
+        if result:
+            result['_id'] = str(result['_id'])
+            return WsMessageFactory.create(self._mode, Q_MSG, {'msg': result})
+        return None
 
     def _queue_msg_consumed(self, msg_id, application):
         storage.Queues.consumed(self._queue, msg_id, application)
-        return None
+        return self._get()
 
     def get_response(self, request: WsMessage):
-        if request.header == GET_ALL:
-            return self._get_all()
+        if request.header == GET:
+            return self._get()
+
         if request.header == Q_MSG_ACK:
-            self._queue_msg_consumed(request.body['msg_id'], request.application)
-            return WsMessageFactory.create(self._mode, OK, {'head': request.header, 'body': request.body})
+            next_msg = self._queue_msg_consumed(request.body['msg_id'], request.application)
+            msgs = [WsMessageFactory.create(self._mode, OK, {'head': request.header, 'body': request.body})]
+            if next_msg:
+                msgs.append(next_msg)
+            return msgs
+
         return None
 
 
