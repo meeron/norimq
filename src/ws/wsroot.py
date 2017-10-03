@@ -38,8 +38,9 @@ class QueuesWebSocketHandler(WebSocketBase):
         super().__init__(sock, protocols, extensions, environ, heartbeat_freq)
         self._conn_id = request_id()
         self._logger = Logger("QueuesWSHandler %s" % self._conn_id)
-        self._queue = None
         self._mode = None
+        self._channel = None
+        self._request_handler = None
 
     def set(self, queue_name, mode):
         if mode not in MODES:
@@ -47,16 +48,20 @@ class QueuesWebSocketHandler(WebSocketBase):
             self._logger.error(err_msg)
             raise Exception(err_msg)
 
-        self._queue = queue_name
         self._mode = mode
+        self._channel = "queue-%s-put" % queue_name
+        self._request_handler = QueuesRequestHandler(self._mode, queue_name)
+
         self._logger.debug("Queue '%s' in '%s' mode" % (queue_name, mode))
 
     def opened(self):
         ip = self.peer_address[0]
         port = self.peer_address[1]
+        cherrypy.engine.subscribe(self._channel, self._msg_added_subscription)
         self._logger.info("Connection from %s:%d" % (ip, port))
 
     def closed(self, code, reason=None):
+        cherrypy.engine.unsubscribe(self._channel, self._msg_added_subscription)
         self._logger.info("Connection closed")
 
     def send_msg(self, message_or_list):
@@ -80,13 +85,16 @@ class QueuesWebSocketHandler(WebSocketBase):
                 self._logger.debug("Received message %s from '%s': %s"
                                    % (ALL[request.header], request.application, request.body))
 
-            handler = QueuesRequestHandler(self._mode, self._queue)
-            response = handler.get_response(request)
+            response = self._request_handler.get_response(request)
             if response:
                 self.send_msg(response)
         except Exception as ex:
             self._logger.error(ex)
             err_msg = WsMessageFactory.create(self._mode, ERROR, "%s" % ex, self._conn_id)
             self.send_msg(err_msg)
+
+    def _msg_added_subscription(self):
+        if not self._request_handler.last_msg:
+            self.send_msg(self._request_handler.get())
 
 

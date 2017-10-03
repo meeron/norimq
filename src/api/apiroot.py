@@ -76,4 +76,7 @@ class Queues:
         if 'body' not in data:
             return bad_request({'code': ErrorCodes.BODY_REQUIRED})
 
-        return created(storage.Queues.add_msg(name, data['application'], data['body']))
+        add_result = storage.Queues.add_msg(name, data['application'], data['body'])
+        channel = "queue-%s-put" % name
+        cherrypy.engine.publish(channel)
+        return created(add_result)

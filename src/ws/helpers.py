@@ -114,21 +114,25 @@ class QueuesRequestHandler:
     def __init__(self, mode, queue_name):
         self._queue = queue_name
         self._mode = mode
+        self.last_msg = False
 
-    def _get(self):
+    def get(self):
         result = storage.Queues.get_first_msg(self._queue)
         if result:
+            self.last_msg = True
             result['_id'] = str(result['_id'])
             return WsMessageFactory.create(self._mode, Q_MSG, {'msg': result})
+
+        self.last_msg = False
         return None
 
     def _queue_msg_consumed(self, msg_id, application):
         storage.Queues.consumed(self._queue, msg_id, application)
-        return self._get()
+        return self.get()
 
     def get_response(self, request: WsMessage):
         if request.header == GET:
-            return self._get()
+            return self.get()
 
         if request.header == Q_MSG_ACK:
             next_msg = self._queue_msg_consumed(request.body['msg_id'], request.application)
