@@ -1,6 +1,7 @@
 """Server module"""
 
 import cherrypy
+import cherrypy_cors
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from src.api import Api
 from src.ws import WebSocket
@@ -9,6 +10,7 @@ from src.core import config
 from src.core.logging import Logger
 
 if __name__ == '__main__':
+    cherrypy_cors.install()
     config.init()
     logger = Logger()
 

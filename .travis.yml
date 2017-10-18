@@ -5,6 +5,7 @@ python:
 
 install:
   - pip install cherrypy
+  - pip install cherrypy_cors
   - pip install routes
   - pip install ws4py
   - pip install https://github.com/meeron/pybinn/archive/v0.9.5-beta.tar.gz

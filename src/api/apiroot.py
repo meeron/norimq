@@ -19,7 +19,8 @@ class Api:
 
         return {
             '/queues': {
-                'request.dispatch': queues_routes
+                'request.dispatch': queues_routes,
+                'cors.expose.on': True
             }
         }
 
